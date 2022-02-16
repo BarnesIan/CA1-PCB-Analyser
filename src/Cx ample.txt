@@ -1,0 +1,18 @@
+mouse pressed
+
+imageview.setonmousepressed() (e->) {
+
+	pixelreader pr = imageview.getimage().getPixelreader();
+	Color col = pr.getColor(e.get x and e.get y);
+	
+	System.out.println("Hue: " + col.getHue());
+	System.out.println("saturation: " + col.getSAT());
+	System.out.println("Brightness: " + col.getBrightness());
+
+
+	
+}
+
+Could bring in logic to get rid of green from the image.
+Try get the clicked on component as clear as possible
+Have to handle multiple components
