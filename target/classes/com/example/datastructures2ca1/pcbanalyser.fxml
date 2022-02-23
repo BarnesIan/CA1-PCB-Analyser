@@ -9,9 +9,9 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/16" fx:controller="com.example.datastructures2ca1.PCBAnalyserController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="570.0" prefWidth="925.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.datastructures2ca1.PCBAnalyserController">
     <children>
-        <MenuBar layoutX="1.0" layoutY="-2.0" prefHeight="21.0" prefWidth="600.0">
+        <MenuBar layoutX="1.0" layoutY="-3.0" prefHeight="27.0" prefWidth="925.0">
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
@@ -21,28 +21,30 @@
                 </Menu>
             </menus>
         </MenuBar>
-        <TabPane layoutX="1.0" layoutY="24.0" prefHeight="377.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
+        <TabPane layoutX="1.0" layoutY="23.0" prefHeight="500.0" prefWidth="925.0" tabClosingPolicy="UNAVAILABLE">
             <tabs>
                 <Tab text="Normal">
                     <content>
-                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="449.0" prefWidth="678.0">
                             <children>
-                                <ImageView fx:id="image" fitHeight="280.0" fitWidth="446.0" layoutX="77.0" layoutY="34.0" onMousePressed="#clickedImage" pickOnBounds="true" preserveRatio="true" />
+                                <ImageView fx:id="image1" fitHeight="266.0" fitWidth="373.0" layoutX="14.0" layoutY="20.0" onMouseClicked="#clickedImage" pickOnBounds="true" preserveRatio="true" />
+                        <Label layoutX="34.0" layoutY="306.0" prefHeight="18.0" prefWidth="99.0" text="Brightness :" />
+                        <Label fx:id="Brightness" layoutX="143.0" layoutY="306.0" prefHeight="18.0" prefWidth="99.0" />
+                        <Label layoutX="34.0" layoutY="324.0" prefHeight="18.0" prefWidth="99.0" text="Saturation :" />
+                        <Label layoutX="34.0" layoutY="342.0" prefHeight="18.0" prefWidth="99.0" text="Hue :" />
+                        <Label layoutX="34.0" layoutY="360.0" prefHeight="18.0" prefWidth="99.0" text="Red :" />
+                        <Label layoutX="34.0" layoutY="378.0" prefHeight="18.0" prefWidth="99.0" text="Blue :" />
+                        <Label layoutX="33.0" layoutY="396.0" prefHeight="18.0" prefWidth="99.0" text="Green :" />
+                        <Label fx:id="Saturation" layoutX="143.0" layoutY="324.0" prefHeight="18.0" prefWidth="99.0" />
+                        <Label fx:id="Hue" layoutX="143.0" layoutY="342.0" prefHeight="18.0" prefWidth="99.0" />
+                        <Label fx:id="Red" layoutX="143.0" layoutY="360.0" prefHeight="18.0" prefWidth="99.0" />
+                        <Label fx:id="Blue" layoutX="143.0" layoutY="378.0" prefHeight="18.0" prefWidth="99.0" />
+                        <Label fx:id="Green" layoutX="143.0" layoutY="396.0" prefHeight="18.0" prefWidth="99.0" />
+                        <ImageView fx:id="image2" fitHeight="266.0" fitWidth="332.0" layoutX="576.0" layoutY="20.0" pickOnBounds="true" preserveRatio="true" />
                             </children>
                         </AnchorPane>
                     </content>
                 </Tab>
-            <Tab text="Grayscale">
-               <content>
-                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                     <children>
-                        <ImageView fx:id="image2" fitHeight="178.0" fitWidth="249.0" layoutX="165.0" layoutY="28.0" pickOnBounds="true" preserveRatio="true" />
-                        <Label layoutX="49.0" layoutY="228.0" prefHeight="26.0" prefWidth="92.0" text="Benchmark :" />
-                        <Label fx:id="timetaken" layoutX="119.0" layoutY="228.0" prefHeight="26.0" prefWidth="215.0" />
-                     </children>
-                  </AnchorPane>
-               </content>
-            </Tab>
             </tabs>
         </TabPane>
     </children>
