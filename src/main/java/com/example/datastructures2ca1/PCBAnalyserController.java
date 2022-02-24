@@ -100,6 +100,22 @@ public class PCBAnalyserController {
                 blue < blueVal + 0.15 && hue > hueVal - 3 && hue < hueVal + 3;
     }
 
+    /**
+     * Iterative method of find
+     */
+    public static int find(int[] a, int id){
+        while(a[id]!=id ) {
+            id = a[id];
+        }
+        return id;
+    }
+    /**
+     * Recursive method of find that uses the ternary operator where it recursively calls itself
+     * Feed this method a set and the id
+     */
+    public static int findRec(int[] a, int id){
+        return a[id] == id ? id : findRec(a,a[id]);
+    }
 
 
 }
