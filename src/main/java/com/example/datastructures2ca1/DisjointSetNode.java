@@ -75,7 +75,7 @@ public class DisjointSetNode<T>{
         find(q,h).parent=p; // The root of q is made reference of p
     }
 
-    public static void unionByHeight(DisjointSetNode<?> p, DisjointSetNode<?> q, int h){
+   /* public static void unionByHeight(DisjointSetNode<?> p, DisjointSetNode<?> q, int h){
         int rootp = find(p,h).height;
         int rootq = find(q,h).height;
 
@@ -83,13 +83,13 @@ public class DisjointSetNode<T>{
         int shallowRoot = deeperRoot == rootp ? rootq : rootp;
 
         int temp = find(p,shallowRoot).height;
-       // temp = deeperRoot;
+            temp = deeperRoot;
         if(deeperRoot == temp) {
             deeperRoot --;
             temp=deeperRoot;
         }
 
-    }
+    }*/
 
 
 }

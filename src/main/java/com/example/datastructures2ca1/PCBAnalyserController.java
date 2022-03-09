@@ -1,5 +1,6 @@
 package com.example.datastructures2ca1;
 
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -13,6 +14,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.ArrayList;
 
 
 public class PCBAnalyserController {
@@ -28,9 +30,8 @@ public class PCBAnalyserController {
     private PixelReader preader;
 
     Rectangle rect;
-
-    int[] djs;
-    int[] objects;
+     int[] pixels;
+    public ArrayList<Integer> djs = new ArrayList<>();
 
 
     public void openImage(ActionEvent ActionEvent) {
@@ -48,6 +49,7 @@ public class PCBAnalyserController {
               Image image = new Image("file:///" + filePath, 512, 512, false, false);
             mainImage.setImage(image);
 
+            pixels = new int[(int)(image.getWidth() * image.getHeight())];
         }
     }
 
@@ -74,7 +76,7 @@ public class PCBAnalyserController {
             Brightness1.setText(String.format("%.2f", preader.getColor(x, y).getBrightness()));
             Saturation1.setText(String.format("%.2f", preader.getColor(x, y).getSaturation()));
 
-
+            int i = 0;
             for (int h = 0; h < height; h++) {
                 for (int w = 0; w < width; w++) {
 
@@ -95,17 +97,18 @@ public class PCBAnalyserController {
 
                     if (blackIdentify(red, green, blue, hue, redValue, greenValue, blueValue, hueValue)) {
                         pw.setColor(w, h, Color.color(0, 0, 0));
+                        pixels[i] = i;
 
 
                     } else {
                         pw.setColor(w, h, Color.color(1, 1, 1));
-
+                        pixels[i] =0;
                     }
+                    i++;
                 }
             }
             image2.setImage(writableImage);
-
-            drawRectangle();
+            createDisjointSet();
         });
     }
 
@@ -128,6 +131,10 @@ public class PCBAnalyserController {
      * Iterative method of find
      */
     public static int find(int[] a, int id){
+        if(a[id] ==0){
+            id = 0;
+            return id;
+        }
         while(a[id]!=id ) {
             id = a[id];
         }
@@ -145,69 +152,98 @@ public class PCBAnalyserController {
         a[find(a,q)] = find(a,p);
     }
 
+
     public void drawRectangle(){
         int selectedObjects = 0;
-
-        for(int id = 0; id < objects.length; id ++){
-
+        Image image = mainImage.getImage();
+        Image bwImage = image2.getImage();
+        for(int p =0; p < pixels.length; p ++){
+            if(pixels[p] != 0 && !djs.contains(find(pixels,p))){
+                djs.add(find(pixels,p));
+            }
+        }
+for (int id : djs){
             selectedObjects ++;
             double maxHeight = -1;
-            double minHeight = -1;
+            double minHeight =  -1;
             double left = -1;
             double right = -1;
-             for(int i = 0; i < djs.length; i ++){
-                 int x = i % (int) mainImage.getFitWidth();
-                 int y = i / (int) mainImage.getFitWidth();
+             for(int i = 0; i < pixels.length; i ++){
+                 int x = i % (int) image.getWidth();
+                 int y = i / (int) image.getWidth();
 
-                 if(djs[i] != -1 && find(djs, i) == id){
+                 if(pixels[i] != 0 && find(pixels, i) == id){
                      if(maxHeight == -1){
                          maxHeight = minHeight = y;
                          left = right = x;
-
                      }
-
+                     else{
+                         if(x < left)
+                             left = x;
+                         if(x > right)
+                             right = x;
+                        if(y > minHeight)
+                            minHeight =y;
+                     }
                  }
              }
-            Rectangle rect = new Rectangle(left,maxHeight, right-left,minHeight -maxHeight);;
-            rect.setStrokeWidth(1);
-            rect.setStroke(Color.CORNFLOWERBLUE);
+
+             Rectangle rect = new Rectangle(left,maxHeight, right-left,minHeight -maxHeight);
+            // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
+             rect.setTranslateX(image2.getTranslateX());
+             rect.setTranslateY(image2.getTranslateY());
+
+     ((AnchorPane) image2.getParent()).getChildren().add(rect);
+            rect.setStrokeWidth(4);
+            rect.setStroke(Color.FIREBRICK);
             rect.setFill(Color.TRANSPARENT);
 
 
-            ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
         }
 
     }
 
 
-/*    public void ColorSelected(){
-        for(int y = 0; y < image2.getFitHeight();y++){
-            for(int x = 0; x < image2.getFitWidth(); x++) {
-                Color col = image2.getImage().getPixelReader().getColor(x, y);
-                if (blackPixels(col)) {
-                    Rectangle(x, y);
-                }
-            }
-            }
-        }*/
 
-        public void createDisjointSet(){
-        int width = (int) mainImage.getFitWidth();
-        for(int i =0; i < djs.length; i ++){
-            if(djs[i] !=0){
-                if((i + 1) % width !=0 && djs[i +1] != 0){
-                    union(djs , i , i + 1);
+      /*  public void createDisjointSet() {
+            int width = (int) image2.getFitWidth();
+            for (int i = 0; i < pixels.length; i++) {
+
+                if (pixels[i] != 0) { //checks if index is black
+                    if ((i + 1) % width != 0 && pixels[i + 1] != 0) {
+                        union(pixels, i, i + 1); //union that index with the next one to the right
+                   System.out.println("1");
+                    }
+                    if (i + width < pixels.length && pixels[i + width] != 0) {
+                        union(pixels, i, i + width); //union that index with the one below it
+                        System.out.println("2");
+                    }
+                    }
                 }
-                if(i +width < djs.length && djs[i + width] != 0){
-                    union(djs, i, i + width);
+            for(int id =0; id < pixels.length; id ++){
+                int parent = findRec(pixels,id);
+                if(parent != -1){
+                    djs.add(parent);
                 }
-                else{
-                    djs[i] = 0;
-                }
-                i ++;
             }
+            }*/
+    public void createDisjointSet(){
+        Image image = mainImage.getImage();
+        int width = (int) image.getWidth();
+        int height = (int) image.getHeight();
+
+        for(int y = 0; y < height; y ++){
+           for(int x = 0;x < width; x ++){
+               if(pixels[y * width + x] != 0 && pixels[y * width + x + 1] != 0){
+                   union(pixels,y * width + x, y * width + x + 1);
+               }
+               if(y < height -1 && pixels[y * height + x] !=0 && pixels[y * width + x + width] != 0){
+                   union(pixels, y * height +x, y * width + x + width);
+               }
+           }
         }
-        }
+    }
+
 
 
 
