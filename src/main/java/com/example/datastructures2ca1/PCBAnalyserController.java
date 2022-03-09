@@ -23,6 +23,8 @@ public class PCBAnalyserController {
     private ImageView mainImage;
     @FXML
     private ImageView image2;
+    @FXML
+    private Label counter;
 
     @FXML
     private Label Brightness1, Saturation1, Hue1, Red1, Green1, Blue1;
@@ -30,8 +32,11 @@ public class PCBAnalyserController {
     private PixelReader preader;
 
     Rectangle rect;
+    public ArrayList<Integer> selectedObjects = new ArrayList<>();
      int[] pixels;
+     //public DisjointSetNode djs1 = new DisjointSetNode();
     public ArrayList<Integer> djs = new ArrayList<>();
+
 
 
     public void openImage(ActionEvent ActionEvent) {
@@ -153,80 +158,57 @@ public class PCBAnalyserController {
     }
 
 
-    public void drawRectangle(){
-        int selectedObjects = 0;
-        Image image = mainImage.getImage();
-        Image bwImage = image2.getImage();
-        for(int p =0; p < pixels.length; p ++){
-            if(pixels[p] != 0 && !djs.contains(find(pixels,p))){
-                djs.add(find(pixels,p));
-            }
-        }
-for (int id : djs){
-            selectedObjects ++;
-            double maxHeight = -1;
-            double minHeight =  -1;
-            double left = -1;
-            double right = -1;
-             for(int i = 0; i < pixels.length; i ++){
-                 int x = i % (int) image.getWidth();
-                 int y = i / (int) image.getWidth();
-
-                 if(pixels[i] != 0 && find(pixels, i) == id){
-                     if(maxHeight == -1){
-                         maxHeight = minHeight = y;
-                         left = right = x;
-                     }
-                     else{
-                         if(x < left)
-                             left = x;
-                         if(x > right)
-                             right = x;
-                        if(y > minHeight)
-                            minHeight =y;
-                     }
-                 }
-             }
-
-             Rectangle rect = new Rectangle(left,maxHeight, right-left,minHeight -maxHeight);
-            // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
-             rect.setTranslateX(image2.getTranslateX());
-             rect.setTranslateY(image2.getTranslateY());
-
-     ((AnchorPane) image2.getParent()).getChildren().add(rect);
-            rect.setStrokeWidth(4);
-            rect.setStroke(Color.FIREBRICK);
-            rect.setFill(Color.TRANSPARENT);
-
-
-        }
-
-    }
-
-
-
-      /*  public void createDisjointSet() {
-            int width = (int) image2.getFitWidth();
-            for (int i = 0; i < pixels.length; i++) {
-
-                if (pixels[i] != 0) { //checks if index is black
-                    if ((i + 1) % width != 0 && pixels[i + 1] != 0) {
-                        union(pixels, i, i + 1); //union that index with the next one to the right
-                   System.out.println("1");
-                    }
-                    if (i + width < pixels.length && pixels[i + width] != 0) {
-                        union(pixels, i, i + width); //union that index with the one below it
-                        System.out.println("2");
-                    }
-                    }
-                }
-            for(int id =0; id < pixels.length; id ++){
-                int parent = findRec(pixels,id);
-                if(parent != -1){
-                    djs.add(parent);
+    public void drawRectangle() {
+            int selectedObjects = 0;
+            Image image = mainImage.getImage();
+            Image bwImage = image2.getImage();
+            for (int p = 0; p < pixels.length; p++) {
+                if (pixels[p] != 0 && !djs.contains(find(pixels, p))) {
+                    djs.add(find(pixels, p));
                 }
             }
-            }*/
+            for (int id : djs) {
+                selectedObjects++;
+                double maxHeight = -1;
+                double minHeight = -1;
+                double left = -1;
+                double right = -1;
+                for (int i = 0; i < pixels.length; i++) {
+                    int x = i % (int) image.getWidth();
+                    int y = i / (int) image.getWidth();
+
+                    if (pixels[i] != 0 && find(pixels, i) == id) {
+                        if (maxHeight == -1) {
+                            maxHeight = minHeight = y;
+                            left = right = x;
+                        } else {
+                            if (x < left)
+                                left = x;
+                            if (x > right)
+                                right = x;
+                            if (y > minHeight)
+                                minHeight = y;
+                        }
+                    }
+                }
+
+                Rectangle rect = new Rectangle(left, maxHeight, right - left, minHeight - maxHeight);
+                // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
+                rect.setTranslateX(mainImage.getTranslateX());
+                rect.setTranslateY(mainImage.getTranslateY());
+
+                ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
+
+                rect.setStrokeWidth(4);
+                rect.setStroke(Color.FIREBRICK);
+                rect.setFill(Color.TRANSPARENT);
+
+            }
+        counter.setText("Selected Objects: " + selectedObjects);
+
+        }
+
+
     public void createDisjointSet(){
         Image image = mainImage.getImage();
         int width = (int) image.getWidth();
@@ -243,6 +225,8 @@ for (int id : djs){
            }
         }
     }
+
+
 
 
 
