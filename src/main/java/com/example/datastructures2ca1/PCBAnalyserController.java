@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.image.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -15,6 +16,8 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.TreeSet;
 
 
 public class PCBAnalyserController {
@@ -29,14 +32,18 @@ public class PCBAnalyserController {
     @FXML
     private Label Brightness1, Saturation1, Hue1, Red1, Green1, Blue1;
 
+    @FXML
+    private Slider brightnessSlider, saturation, nr;
+
+
+    private Color selectedColor;
+
     private PixelReader preader;
 
     Rectangle rect;
     public ArrayList<Integer> selectedObjects = new ArrayList<>();
-     int[] pixels;
-     //public DisjointSetNode djs1 = new DisjointSetNode();
+    int[] pixels;
     public ArrayList<Integer> djs = new ArrayList<>();
-
 
 
     public void openImage(ActionEvent ActionEvent) {
@@ -46,20 +53,21 @@ public class PCBAnalyserController {
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
         File filePath = fileChooser.showOpenDialog(null);
-       // Image selectedImage = new Image(String.valueOf(fileChooser.showOpenDialog(null)));
+        // Image selectedImage = new Image(String.valueOf(fileChooser.showOpenDialog(null)));
 
         //  Image image = new Image("",512,512,false,false);
 
         if (filePath != null) {
-              Image image = new Image("file:///" + filePath, 512, 512, false, false);
+            Image image = new Image("file:///" + filePath, 512, 512, false, false);
             mainImage.setImage(image);
 
-            pixels = new int[(int)(image.getWidth() * image.getHeight())];
+            pixels = new int[(int) (image.getWidth() * image.getHeight())];
         }
     }
 
     public void clickedImage(MouseEvent event) {
 
+        //double finalHue = getSelectedColor().getHue();
         preader = mainImage.getImage().getPixelReader();
         Image inputImage = mainImage.getImage();
 
@@ -92,22 +100,23 @@ public class PCBAnalyserController {
                     var hue = color.getHue();
                     var sat = color.getSaturation();
                     var bright = color.getBrightness();
-
+                    brightnessSlider.getValue();
+                    saturation.getValue();
                     var redValue = Double.parseDouble(Red1.getText());
                     var greenValue = Double.parseDouble(Green1.getText());
                     var blueValue = Double.parseDouble(Blue1.getText());
                     var hueValue = Double.parseDouble(Hue1.getText());
-                    var satValue = Double.parseDouble(Saturation1.getText());
-                    var brightValue = Double.parseDouble(Brightness1.getText());
+                    double satValue = saturation.getValue();
+                    double brightValue = brightnessSlider.getValue();
 
-                    if (blackIdentify(red, green, blue, hue, redValue, greenValue, blueValue, hueValue)) {
+
+                    if (blackIdentify(red, green, blue, hue, redValue, greenValue, blueValue, hueValue, bright, brightValue, sat, satValue)) {
                         pw.setColor(w, h, Color.color(0, 0, 0));
                         pixels[i] = i;
 
-
                     } else {
                         pw.setColor(w, h, Color.color(1, 1, 1));
-                        pixels[i] =0;
+                        pixels[i] = 0;
                     }
                     i++;
                 }
@@ -117,118 +126,181 @@ public class PCBAnalyserController {
         });
     }
 
-    private static boolean blackIdentify(Double red, Double green, Double blue, Double hue, Double redVal, Double greenVal, Double blueVal, Double hueVal) {
-        return red > redVal - 0.15 && red < redVal + 0.15 && green > greenVal - 0.15 && green < greenVal + 0.15 && blue > blueVal - 0.15 &&
-                blue < blueVal + 0.15 && hue > hueVal - 3 && hue < hueVal + 3;
+    private static boolean blackIdentify(Double red, Double green, Double blue, Double hue, Double redVal, Double greenVal, Double blueVal, Double hueVal, Double bright, Double brightValue, Double sat, Double satValue) {
+        return red > redVal - 0.3 && red < redVal + 0.3 && green > greenVal - 0.3 && green < greenVal + 0.3 && blue > blueVal - 0.3 &&
+                blue < blueVal + 0.3 && hue > hueVal - 8 && hue < hueVal + 8 && bright > brightValue - 0.9 && bright < brightValue + 0.9 && sat > satValue - 0.5 && sat < satValue + 0.5;
     }
 
-    public boolean blackPixels(Color color){
-        double average = (color.getRed() + color.getGreen() + color.getBlue() /3);
-        if(average <= 0.5){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
 
     /**
      * Iterative method of find
      */
-    public static int find(int[] a, int id){
-        if(a[id] ==0){
+    public static int find(int[] a, int id) {
+        if (a[id] == 0) {
             id = 0;
             return id;
         }
-        while(a[id]!=id ) {
+        while (a[id] != id) {
             id = a[id];
         }
         return id;
     }
+
     /**
      * Recursive method of find that uses the ternary operator where it recursively calls itself
      * Feed this method a set and the id
      */
-    public static int findRec(int[] a, int id){
-        return a[id] == id ? id : findRec(a,a[id]);
+    public static int findRec(int[] a, int id) {
+        return a[id] == id ? id : findRec(a, a[id]);
     }
 
-    public void union(int[] a, int p, int q){
-        a[find(a,q)] = find(a,p);
+    public static int findCompress(int[] a, int id) {
+        while (a[id] != id) {
+            a[id] = a[a[id]]; //Compress path
+            id = a[id];
+        }
+        return id;
     }
 
+    public void union(int[] a, int p, int q) {
+        a[findCompress(a, q)] = findCompress(a, p);
+    }
+
+    public void setUpClusters() {
+        for (int p = 0; p < pixels.length; p++) {
+            if (pixels[p] != 0 && !djs.contains(findCompress(pixels, p))) {
+                djs.add(findCompress(pixels, p));
+            }
+        }
+    }
 
     public void drawRectangle() {
-            int selectedObjects = 0;
-            Image image = mainImage.getImage();
-            Image bwImage = image2.getImage();
-            for (int p = 0; p < pixels.length; p++) {
-                if (pixels[p] != 0 && !djs.contains(find(pixels, p))) {
-                    djs.add(find(pixels, p));
-                }
-            }
-            for (int id : djs) {
-                selectedObjects++;
-                double maxHeight = -1;
-                double minHeight = -1;
-                double left = -1;
-                double right = -1;
-                for (int i = 0; i < pixels.length; i++) {
-                    int x = i % (int) image.getWidth();
-                    int y = i / (int) image.getWidth();
 
-                    if (pixels[i] != 0 && find(pixels, i) == id) {
-                        if (maxHeight == -1) {
-                            maxHeight = minHeight = y;
-                            left = right = x;
-                        } else {
-                            if (x < left)
-                                left = x;
-                            if (x > right)
-                                right = x;
-                            if (y > minHeight)
-                                minHeight = y;
-                        }
+        int selectedObjects = 0;
+        Image image = mainImage.getImage();
+
+        setUpClusters();
+
+        for (int data : djs) {
+
+            int maxHeight = 0;
+            int minHeight = 0;
+            int left = 0;
+            int right = 0;
+            for (int i = 0; i < pixels.length; i++) {
+                int x = i % (int) image.getWidth();
+                int y = i / (int) image.getWidth();
+
+                if (pixels[i] != -1 && find(pixels, i) == data) {
+                    if (maxHeight == 0) {
+                        maxHeight = minHeight = y;
+                        left = right = x;
+                    } else {
+                        if (x < left)
+                            left = x;
+                        if (x > right)
+
+                            right = x;
+                        if (y > minHeight)
+                            minHeight = y;
                     }
                 }
-
-                Rectangle rect = new Rectangle(left, maxHeight, right - left, minHeight - maxHeight);
+            }
+            //Helps clean the selected objects by getting the area of each disjoint set and only adds to the counter if above a certain area
+            if ((right - left) * (minHeight - maxHeight) > 100) {
+                selectedObjects++;
+                Rectangle rect = new Rectangle(left - 5, maxHeight + 5, right - left + 5, minHeight - maxHeight);
                 // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
                 rect.setTranslateX(mainImage.getTranslateX());
                 rect.setTranslateY(mainImage.getTranslateY());
 
                 ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
 
-                rect.setStrokeWidth(4);
+                rect.setStrokeWidth(2);
                 rect.setStroke(Color.FIREBRICK);
                 rect.setFill(Color.TRANSPARENT);
-
             }
+        }
         counter.setText("Selected Objects: " + selectedObjects);
+
+    }
+
+    public void createDisjointSet() {
+        Image image = mainImage.getImage();
+
+        int width = (int) image.getWidth();
+        for (int i = 0; i < pixels.length; i++) {
+            if (pixels[i] != 0) { // if an index is black
+                if ((i + 1) % width != 0 && pixels[i + 1] != 0)
+                    union(pixels, i, i + 1); // union that index with the index to the right
+                if (i + width < pixels.length && pixels[i + width] != 0)
+                    union(pixels, i, i + width); // union index with the index below
+            }
 
         }
 
+    }
 
-    public void createDisjointSet(){
-        Image image = mainImage.getImage();
-        int width = (int) image.getWidth();
-        int height = (int) image.getHeight();
+    public void ClearRectangles(ActionEvent event) {
+        int width = (int) mainImage.getImage().getWidth();
+        int height = (int) mainImage.getImage().getHeight();
+        for (int h = 0; h < height; h++) {
+            for (int w = 0; w < width; w++) {
+                if (preader.getColor(w, h).equals(Color.FIREBRICK)) ;
+                WritableImage writableImage = new WritableImage(preader, width, height);
 
-        for(int y = 0; y < height; y ++){
-           for(int x = 0;x < width; x ++){
-               if(pixels[y * width + x] != 0 && pixels[y * width + x + 1] != 0){
-                   union(pixels,y * width + x, y * width + x + 1);
-               }
-               if(y < height -1 && pixels[y * height + x] !=0 && pixels[y * width + x + width] != 0){
-                   union(pixels, y * height +x, y * width + x + width);
-               }
-           }
+
+            }
+
         }
     }
 
+    public void Color(ActionEvent event) {
 
+        preader = image2.getImage().getPixelReader();
+        Image image = mainImage.getImage();
+        WritableImage writableImage = new WritableImage(preader, (int) image.getWidth(), (int) image.getHeight());
+        PixelWriter pw = writableImage.getPixelWriter();
 
+        for (int p = 0; p < pixels.length; p++) {
+            if (pixels[p] != 0 && !djs.contains(findCompress(pixels, p))) {
+                djs.add(findCompress(pixels, p));
+            }
+        }
+        for (int data : djs) {
+            int maxHeight = 0;
+            int minHeight = 0;
+            int left = 0;
+            int right = 0;
+            for (int i = 0; i < pixels.length; i++) {
+                int x = i % (int) image.getWidth();
+                int y = i / (int) image.getWidth();
 
+                if (pixels[i] != -1 && find(pixels, i) == data) {
+                    if (maxHeight == 0) {
+                        maxHeight = minHeight = y;
+                        left = right = x;
+                    } else {
+                        if (x < left)
+                            left = x;
+                        if (x > right)
+
+                            right = x;
+                        if (y > minHeight)
+                            minHeight = y;
+                    }
+                }
+                    Random rand = new Random();
+                    float r = rand.nextFloat();
+                    float g = rand.nextFloat();
+                    float b = rand.nextFloat();
+                    image2.setImage(writableImage);
+                    pw.setColor(x, y, Color.color(r, g, b));
+
+                }
+            }
+        }
+    }
 
 
 }
