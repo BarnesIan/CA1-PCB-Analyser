@@ -1,0 +1,13 @@
+ PCB image file selection and display = 5% </
+ Black-and-white image conversion and display = 10% </
+ Union-find implementation = 10% </
+ Onscreen identification of all selected components (using rectangles) = 10% </
+ Ordered sequential components numbering (onscreen labelling) = 10%
+ Estimating/counting of components in overall image (total and by type) = 8% 4
+ Reporting the size of individual disjoint sets (in pixel units) = 7% </
+ Colouring disjoint sets in black-and-white image (both sampled and random colours) = 10%
+ Image noise reduction and outlier management = 10%
+ JavaFX GUI = 5% </
+ JUnit Testing = 5%
+ JMH Benchmarking of key methods = 5%
+ General (overall completeness, structure, commenting, logic, etc.) = 5%

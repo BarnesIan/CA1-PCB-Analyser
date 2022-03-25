@@ -1,14 +1,21 @@
 package com.example.datastructures2ca1;
 
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
@@ -25,38 +32,35 @@ public class PCBAnalyserController {
     @FXML
     private ImageView mainImage;
     @FXML
-    private ImageView image2;
+    private ImageView image2, blackandwhite;
     @FXML
-    private Label counter;
+    private Label counter, component;
+
 
     @FXML
     private Label Brightness1, Saturation1, Hue1, Red1, Green1, Blue1;
 
     @FXML
-    private Slider brightnessSlider, saturation, nr;
-
-
-    private Color selectedColor;
+    private Slider brightnessSlider, saturation;
 
     private PixelReader preader;
-
-    Rectangle rect;
-    public ArrayList<Integer> selectedObjects = new ArrayList<>();
     int[] pixels;
     public ArrayList<Integer> djs = new ArrayList<>();
 
 
+    public void initialize(){
+        Tooltip button = new Tooltip("Draw rectangles on Disjoint Sets");
+        Tooltip.install(counter,button);
+        counter.setTooltip(button);
+    }
     public void openImage(ActionEvent ActionEvent) {
-        //Stage stage = (Stage) ((Node) ActionEvent.getTarget()).getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open an image");
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
         File filePath = fileChooser.showOpenDialog(null);
-        // Image selectedImage = new Image(String.valueOf(fileChooser.showOpenDialog(null)));
 
-        //  Image image = new Image("",512,512,false,false);
-
+        //Sets the image size to 512x512 regardless of how big the image actually is, Makes it easier to run the project for
         if (filePath != null) {
             Image image = new Image("file:///" + filePath, 512, 512, false, false);
             mainImage.setImage(image);
@@ -65,9 +69,12 @@ public class PCBAnalyserController {
         }
     }
 
+    /**
+     * B&W Conversion Method
+     */
+
     public void clickedImage(MouseEvent event) {
 
-        //double finalHue = getSelectedColor().getHue();
         preader = mainImage.getImage().getPixelReader();
         Image inputImage = mainImage.getImage();
 
@@ -108,7 +115,7 @@ public class PCBAnalyserController {
                     var hueValue = Double.parseDouble(Hue1.getText());
                     double satValue = saturation.getValue();
                     double brightValue = brightnessSlider.getValue();
-
+                    component.setText("Selected Component: " + determineComponent(redValue,greenValue,blueValue));
 
                     if (blackIdentify(red, green, blue, hue, redValue, greenValue, blueValue, hueValue, bright, brightValue, sat, satValue)) {
                         pw.setColor(w, h, Color.color(0, 0, 0));
@@ -119,19 +126,36 @@ public class PCBAnalyserController {
                         pixels[i] = 0;
                     }
                     i++;
+
                 }
             }
             image2.setImage(writableImage);
             createDisjointSet();
+
         });
     }
 
+    /**
+     *Identifies the areas to change for black and what to change for white depending on what is clicked on. This is where tolerances can be set and uses SAT and BRIGHT Sliders.
+     */
     private static boolean blackIdentify(Double red, Double green, Double blue, Double hue, Double redVal, Double greenVal, Double blueVal, Double hueVal, Double bright, Double brightValue, Double sat, Double satValue) {
         return red > redVal - 0.3 && red < redVal + 0.3 && green > greenVal - 0.3 && green < greenVal + 0.3 && blue > blueVal - 0.3 &&
                 blue < blueVal + 0.3 && hue > hueVal - 8 && hue < hueVal + 8 && bright > brightValue - 0.9 && bright < brightValue + 0.9 && sat > satValue - 0.5 && sat < satValue + 0.5;
     }
 
+    public String determineComponent(Double red, Double green, Double blue){
+        String component = "";
+        if((red <= 0.33 && red >= 0.12) && (green <= 0.30 && green >= 0.12) && (blue <= 0.30 && blue >= 0.12 )){
+            component = "Integrated Circuit";
+        }else if((red <= 0.98 && red >= 0.84) && (green <= 0.65 && green >= 0.39) &&(blue <=0.30 && blue >=0.1 )){
+            component = "Capacitor";
 
+        }
+        else{
+            component = "Unknown";
+        }
+        return component;
+    }
     /**
      * Iterative method of find
      */
@@ -154,6 +178,9 @@ public class PCBAnalyserController {
         return a[id] == id ? id : findRec(a, a[id]);
     }
 
+    /**
+     * Find iterative method with compression, taken from notes
+     */
     public static int findCompress(int[] a, int id) {
         while (a[id] != id) {
             a[id] = a[a[id]]; //Compress path
@@ -166,6 +193,9 @@ public class PCBAnalyserController {
         a[findCompress(a, q)] = findCompress(a, p);
     }
 
+    /**
+     * Method used for finding and adding the black pixels to the Disjoint Set
+     */
     public void setUpClusters() {
         for (int p = 0; p < pixels.length; p++) {
             if (pixels[p] != 0 && !djs.contains(findCompress(pixels, p))) {
@@ -178,7 +208,9 @@ public class PCBAnalyserController {
 
         int selectedObjects = 0;
         Image image = mainImage.getImage();
-
+        Image  secondImage = image2.getImage();
+        PixelReader pr = secondImage.getPixelReader();
+        WritableImage writableImage = new WritableImage(pr, (int) secondImage.getWidth(), (int) secondImage.getHeight());
         setUpClusters();
 
         for (int data : djs) {
@@ -191,7 +223,7 @@ public class PCBAnalyserController {
                 int x = i % (int) image.getWidth();
                 int y = i / (int) image.getWidth();
 
-                if (pixels[i] != -1 && find(pixels, i) == data) {
+                if (pixels[i] != 0 && find(pixels, i) == data) {
                     if (maxHeight == 0) {
                         maxHeight = minHeight = y;
                         left = right = x;
@@ -206,21 +238,38 @@ public class PCBAnalyserController {
                     }
                 }
             }
+
+            int biggestArea = 0;
+            int Area = (right - left) *(minHeight - maxHeight);
+            if (Area > biggestArea){
+                biggestArea = Area;
+
+            }
+            Rectangle rect;
             //Helps clean the selected objects by getting the area of each disjoint set and only adds to the counter if above a certain area
             if ((right - left) * (minHeight - maxHeight) > 100) {
+
                 selectedObjects++;
-                Rectangle rect = new Rectangle(left - 5, maxHeight + 5, right - left + 5, minHeight - maxHeight);
+                 rect = new Rectangle(left - 5, maxHeight + 5, right - left + 5, minHeight - maxHeight);
                 // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
                 rect.setTranslateX(mainImage.getTranslateX());
                 rect.setTranslateY(mainImage.getTranslateY());
-
-                ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
-
                 rect.setStrokeWidth(2);
                 rect.setStroke(Color.FIREBRICK);
                 rect.setFill(Color.TRANSPARENT);
+
+                ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
+
+                Tooltip area = new Tooltip("Estimated Area: " + Area + " pixels" + "\n" + getComponent());
+                Tooltip.install(rect, area);
+                area.setWidth(200);
+                area.setHeight(1500);
+
             }
+
+
         }
+        blackandwhite.setImage(writableImage);
         counter.setText("Selected Objects: " + selectedObjects);
 
     }
@@ -241,33 +290,16 @@ public class PCBAnalyserController {
 
     }
 
-    public void ClearRectangles(ActionEvent event) {
-        int width = (int) mainImage.getImage().getWidth();
-        int height = (int) mainImage.getImage().getHeight();
-        for (int h = 0; h < height; h++) {
-            for (int w = 0; w < width; w++) {
-                if (preader.getColor(w, h).equals(Color.FIREBRICK)) ;
-                WritableImage writableImage = new WritableImage(preader, width, height);
-
-
-            }
-
-        }
-    }
-
-    public void Color(ActionEvent event) {
-
-        preader = image2.getImage().getPixelReader();
+    public void drawDisjoints(){
+        int selectedObjects = 0;
         Image image = mainImage.getImage();
-        WritableImage writableImage = new WritableImage(preader, (int) image.getWidth(), (int) image.getHeight());
-        PixelWriter pw = writableImage.getPixelWriter();
+        Image  secondImage = image2.getImage();
+        PixelReader pr = secondImage.getPixelReader();
+        WritableImage writableImage = new WritableImage(pr, (int) secondImage.getWidth(), (int) secondImage.getHeight());
+        setUpClusters();
 
-        for (int p = 0; p < pixels.length; p++) {
-            if (pixels[p] != 0 && !djs.contains(findCompress(pixels, p))) {
-                djs.add(findCompress(pixels, p));
-            }
-        }
         for (int data : djs) {
+
             int maxHeight = 0;
             int minHeight = 0;
             int left = 0;
@@ -276,7 +308,7 @@ public class PCBAnalyserController {
                 int x = i % (int) image.getWidth();
                 int y = i / (int) image.getWidth();
 
-                if (pixels[i] != -1 && find(pixels, i) == data) {
+                if (pixels[i] != 0 && find(pixels, i) == data) {
                     if (maxHeight == 0) {
                         maxHeight = minHeight = y;
                         left = right = x;
@@ -290,17 +322,90 @@ public class PCBAnalyserController {
                             minHeight = y;
                     }
                 }
-                    Random rand = new Random();
-                    float r = rand.nextFloat();
-                    float g = rand.nextFloat();
-                    float b = rand.nextFloat();
-                    image2.setImage(writableImage);
-                    pw.setColor(x, y, Color.color(r, g, b));
+            }
 
-                }
+            int biggestArea = 0;
+            int Area = (right - left) * (minHeight - maxHeight);
+            if (Area > biggestArea) {
+                biggestArea = Area;
+
+            }
+        }
+
+    }
+
+    /**
+     * Not working
+     */
+
+    public void ClearRectangles(ActionEvent event) {
+        int width = (int) mainImage.getImage().getWidth();
+        int height = (int) mainImage.getImage().getHeight();
+        for (int h = 0; h < height; h++) {
+            for (int w = 0; w < width; w++) {
+                if (preader.getColor(w, h).equals(Color.FIREBRICK)) ;
+                WritableImage writableImage = new WritableImage(preader, width, height);
+
             }
         }
     }
 
+    public void SampleSingleDJS(){
 
-}
+    }
+
+
+    public void ColorSingleDJS(ActionEvent event) {
+
+        preader = image2.getImage().getPixelReader();
+        Image image = image2.getImage();
+        WritableImage writableImage = new WritableImage(preader, (int) image.getWidth(), (int) image.getHeight());
+        PixelWriter pw = writableImage.getPixelWriter();
+
+       setUpClusters();
+
+        for (int data : djs) {
+
+            Random rand = new Random();
+            int r = rand.nextInt(255);
+            int g = rand.nextInt(255);
+            int b = rand.nextInt(255);
+            var randomColor = Color.rgb(r,g,b);
+            for (int i = 0; i < pixels.length; i++) {
+                int x = i % (int) image.getWidth();
+                int y = i / (int) image.getWidth();
+
+                if (pixels[i] != 0 && find(pixels, i) == data) {
+                    pw.setColor(x, y, randomColor);
+                } else if (pixels[i] == 0 && find(pixels, i) !=i) {
+                    pw.setColor(x, y, Color.WHITE);
+                }
+            }
+            image2.setImage(writableImage);
+            }
+        }
+
+
+      /*  public String getComponent(int area) {
+            String component = "";
+            if (area < 99999 &&  area > 9999 ) {
+                component = "Integrated Circuit";
+            } else if (area < 9998 && area > 999) {
+                component = "Capacitor";
+            }
+                else if(area < 998 && area > 400){
+                    component = "Resistor";
+                }
+
+         return component;
+        }*/
+
+        public String getComponent(){
+        return component.getText();
+        }
+        public void CloseProgram(){
+
+        }
+    }
+
+

@@ -12,14 +12,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Pane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="696.0" prefWidth="1102.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.datastructures2ca1.PCBAnalyserController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="696.0" prefWidth="1102.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.datastructures2ca1.PCBAnalyserController">
     <children>
         <MenuBar layoutX="1.0" layoutY="-4.0" prefHeight="29.0" prefWidth="1102.0">
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#openImage" text="Open Image" />
-                        <MenuItem mnemonicParsing="false" text="close" />
+                        <MenuItem mnemonicParsing="false" onAction="#CloseProgram" text="Close" />
                     </items>
                 </Menu>
             </menus>
@@ -55,11 +55,22 @@
                         <Slider fx:id="saturation" blockIncrement="0.1" layoutX="590.0" layoutY="579.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="212.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
                         <Label fx:id="counter11" layoutX="666.0" layoutY="608.0" prefHeight="18.0" prefWidth="180.0" text="Saturation" />
                         <Button layoutX="478.0" layoutY="556.0" mnemonicParsing="false" onAction="#ClearRectangles" prefHeight="25.0" prefWidth="104.0" text="Clear Rectangles" />
-                        <Button layoutX="389.0" layoutY="524.0" mnemonicParsing="false" onAction="#Color" text="Color" />
+                        <Button layoutX="389.0" layoutY="524.0" mnemonicParsing="false" onAction="#ColorSingleDJS" text="Color" />
+                        <Label fx:id="component" layoutX="234.0" layoutY="604.0" prefHeight="18.0" prefWidth="291.0" text="Selected Component: " />
                             </children>
                         </AnchorPane>
                     </content>
                 </Tab>
+            <Tab text="Color">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <ImageView fx:id="blackandwhite" fitHeight="512.0" fitWidth="512.0" layoutX="72.0" layoutY="61.0" pickOnBounds="true" preserveRatio="true" />
+                        <Label layoutX="81.0" layoutY="20.0" text="Combined Black and White Image" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
             </tabs>
         </TabPane>
     </children>
