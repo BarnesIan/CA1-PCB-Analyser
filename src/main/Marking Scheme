@@ -11,3 +11,6 @@
  JUnit Testing = 5%
  JMH Benchmarking of key methods = 5%
  General (overall completeness, structure, commenting, logic, etc.) = 5%
+
+idea: When clicking image store the selected color and create a disjoint array of those colors. put them on the single disjoint set screen,
+then add any new ones to that and color them the same color there stored as and if statement to say if not that color then white

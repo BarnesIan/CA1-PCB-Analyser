@@ -151,6 +151,9 @@ public class PCBAnalyserController {
             component = "Capacitor";
 
         }
+        else if((red <= 0.94 && red >= 0.75) && (green <= 0.78 && green >= 0.64) && (blue <=0.6 && blue >= 0.50)){
+            component = "C13 Resistor";
+        }
         else{
             component = "Unknown";
         }
@@ -250,7 +253,7 @@ public class PCBAnalyserController {
             if ((right - left) * (minHeight - maxHeight) > 100) {
 
                 selectedObjects++;
-                 rect = new Rectangle(left - 5, maxHeight + 5, right - left + 5, minHeight - maxHeight);
+                 rect = new Rectangle(left, maxHeight, right - left, minHeight - maxHeight);
                 // Rectangle rect = new Rectangle(left,right - left,maxHeight,minHeight -maxHeight);
                 rect.setTranslateX(mainImage.getTranslateX());
                 rect.setTranslateY(mainImage.getTranslateY());
