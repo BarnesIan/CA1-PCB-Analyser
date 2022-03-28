@@ -45,13 +45,15 @@ public class PCBAnalyserController {
 
     private PixelReader preader;
     int[] pixels;
+    public ArrayList<Rectangle> rectangles = new ArrayList<>();
     public ArrayList<Integer> djs = new ArrayList<>();
-
+    WritableImage writableImage;
 
     public void initialize(){
         Tooltip button = new Tooltip("Draw rectangles on Disjoint Sets");
         Tooltip.install(counter,button);
         counter.setTooltip(button);
+
     }
     public void openImage(ActionEvent ActionEvent) {
         FileChooser fileChooser = new FileChooser();
@@ -64,7 +66,7 @@ public class PCBAnalyserController {
         if (filePath != null) {
             Image image = new Image("file:///" + filePath, 512, 512, false, false);
             mainImage.setImage(image);
-
+            writableImage = new WritableImage( (int) image.getWidth(), (int) image.getHeight());
             pixels = new int[(int) (image.getWidth() * image.getHeight())];
         }
     }
@@ -78,7 +80,7 @@ public class PCBAnalyserController {
         preader = mainImage.getImage().getPixelReader();
         Image inputImage = mainImage.getImage();
 
-        WritableImage writableImage = new WritableImage(preader, (int) inputImage.getWidth(), (int) inputImage.getHeight());
+
         int width = (int) inputImage.getWidth();
         int height = (int) inputImage.getHeight();
         PixelWriter pw = writableImage.getPixelWriter();
@@ -213,7 +215,6 @@ public class PCBAnalyserController {
         Image image = mainImage.getImage();
         Image  secondImage = image2.getImage();
         PixelReader pr = secondImage.getPixelReader();
-        WritableImage writableImage = new WritableImage(pr, (int) secondImage.getWidth(), (int) secondImage.getHeight());
         setUpClusters();
 
         for (int data : djs) {
@@ -226,7 +227,7 @@ public class PCBAnalyserController {
                 int x = i % (int) image.getWidth();
                 int y = i / (int) image.getWidth();
 
-                if (pixels[i] != 0 && find(pixels, i) == data) {
+                if (pixels[i] != 0 && findCompress(pixels, i) == data) {
                     if (maxHeight == 0) {
                         maxHeight = minHeight = y;
                         left = right = x;
@@ -234,7 +235,6 @@ public class PCBAnalyserController {
                         if (x < left)
                             left = x;
                         if (x > right)
-
                             right = x;
                         if (y > minHeight)
                             minHeight = y;
@@ -262,8 +262,9 @@ public class PCBAnalyserController {
                 rect.setFill(Color.TRANSPARENT);
 
                 ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
+                rectangles.add(rect);
 
-                Tooltip area = new Tooltip("Estimated Area: " + Area + " pixels" + "\n" + getComponent());
+                Tooltip area = new Tooltip("Estimated Area: " + Area + " pixels" + "\n" + getComponent() + "\n" + "Component number: " + selectedObjects);
                 Tooltip.install(rect, area);
                 area.setWidth(200);
                 area.setHeight(1500);
@@ -337,21 +338,16 @@ public class PCBAnalyserController {
 
     }
 
+
     /**
-     * Not working
+     *  Lambda checker to check if class != to main images classes
      */
-
     public void ClearRectangles(ActionEvent event) {
-        int width = (int) mainImage.getImage().getWidth();
-        int height = (int) mainImage.getImage().getHeight();
-        for (int h = 0; h < height; h++) {
-            for (int w = 0; w < width; w++) {
-                if (preader.getColor(w, h).equals(Color.FIREBRICK)) ;
-                WritableImage writableImage = new WritableImage(preader, width, height);
-
-            }
-        }
+        ((AnchorPane) mainImage.getParent()).getChildren().removeIf(e -> e.getClass() != mainImage.getClass());
     }
+
+
+
 
     public void SampleSingleDJS(){
 
@@ -359,14 +355,7 @@ public class PCBAnalyserController {
 
 
     public void ColorSingleDJS(ActionEvent event) {
-
-        preader = image2.getImage().getPixelReader();
-        Image image = image2.getImage();
-        WritableImage writableImage = new WritableImage(preader, (int) image.getWidth(), (int) image.getHeight());
-        PixelWriter pw = writableImage.getPixelWriter();
-
        setUpClusters();
-
         for (int data : djs) {
 
             Random rand = new Random();
@@ -375,16 +364,11 @@ public class PCBAnalyserController {
             int b = rand.nextInt(255);
             var randomColor = Color.rgb(r,g,b);
             for (int i = 0; i < pixels.length; i++) {
-                int x = i % (int) image.getWidth();
-                int y = i / (int) image.getWidth();
-
                 if (pixels[i] != 0 && find(pixels, i) == data) {
-                    pw.setColor(x, y, randomColor);
-                } else if (pixels[i] == 0 && find(pixels, i) !=i) {
-                    pw.setColor(x, y, Color.WHITE);
+                    PixelWriter pixelWriter = writableImage.getPixelWriter();
+                    pixelWriter.setColor(i % (int) writableImage.getWidth(), i / (int) writableImage.getWidth(), randomColor);
                 }
             }
-            image2.setImage(writableImage);
             }
         }
 
