@@ -1,6 +1,10 @@
 package com.example.datastructures2ca1;
 
 
+/**
+ * Unused class set up at the start to try make generic Nodes
+ */
+
 public class DisjointSetNode<T>{
     public DisjointSetNode<?> parent = null;
    // public DisjointNode<?> node = null;

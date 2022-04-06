@@ -31,7 +31,7 @@ public class PCBAnalyserController {
     @FXML
     private ImageView mainImage;
     @FXML
-    private ImageView image2, blackandwhite;
+    private ImageView image2, singleColor;
     @FXML
     private Label counter, component;
 
@@ -45,10 +45,13 @@ public class PCBAnalyserController {
     private PixelReader preader;
     int[] pixels;
     int[] areaCounter;
+    int[] colorArray;
+    public ArrayList<Color> color1 = new ArrayList<>();
     public ArrayList<Rectangle> rectangleCounter = new ArrayList<>();
     //public ArrayList<Double> areaCounter = new ArrayList<>();
     public ArrayList<Integer> djs = new ArrayList<>();
     WritableImage writableImage;
+    WritableImage singleWritablImage;
 
     public void initialize(){
         Tooltip button = new Tooltip("Draw rectangles on Disjoint Sets");
@@ -68,6 +71,7 @@ public class PCBAnalyserController {
             Image image = new Image("file:///" + filePath, 512, 512, false, false);
             mainImage.setImage(image);
             writableImage = new WritableImage( (int) image.getWidth(), (int) image.getHeight());
+            singleWritablImage = new WritableImage((int)image.getWidth(),(int) image.getHeight());
             pixels = new int[(int) (image.getWidth() * image.getHeight())];
         }
     }
@@ -85,6 +89,8 @@ public class PCBAnalyserController {
         int width = (int) inputImage.getWidth();
         int height = (int) inputImage.getHeight();
         PixelWriter pw = writableImage.getPixelWriter();
+        PixelWriter pws = singleWritablImage.getPixelWriter();
+       // PixelWriter spw = singleWritablImage.getPixelWriter();
 
 
         mainImage.setOnMouseClicked(e -> {
@@ -119,19 +125,23 @@ public class PCBAnalyserController {
                     double satValue = saturation.getValue();
                     double brightValue = brightnessSlider.getValue();
                     component.setText("Selected Component: " + determineComponent(redValue,greenValue,blueValue));
-
+                    AddColor(redValue,greenValue,blueValue);
                     if (blackIdentify(red, green, blue, hue, redValue, greenValue, blueValue, hueValue, bright, brightValue, sat, satValue)) {
                         pw.setColor(w, h, Color.color(0, 0, 0));
+                        pws.setColor(w,h, Color.color(redValue,greenValue,blueValue));
                         pixels[i] = i;
+
 
                     } else {
                         pw.setColor(w, h, Color.color(1, 1, 1));
+                        pws.setColor(w, h, Color.color(1, 1, 1));
                         pixels[i] = 0;
                     }
                     i++;
 
                 }
             }
+            singleColor.setImage(singleWritablImage);
             image2.setImage(writableImage);
             createDisjointSet();
 
@@ -146,6 +156,16 @@ public class PCBAnalyserController {
                 blue < blueVal + 0.3 && hue > hueVal - 8 && hue < hueVal + 8 && bright > brightValue - 0.9 && bright < brightValue + 0.9 && sat > satValue - 0.5 && sat < satValue + 0.5;
     }
 
+    /**
+     * Broken method tried for coloring single disjoint sets
+     */
+    public void AddColor(Double red,Double green, Double blue){
+        color1.clear();
+        color1.add(Color.color(red,green,blue));
+    }
+    /**
+     * Determines the component selected based on colors used in clicked method
+     */
     public static String determineComponent(Double red, Double green, Double blue){
         String component = "";
         if((red <= 0.33 && red >= 0.12) && (green <= 0.30 && green >= 0.12) && (blue <= 0.30 && blue >= 0.12 )){
@@ -177,14 +197,6 @@ public class PCBAnalyserController {
     }
 
     /**
-     * Recursive method of find that uses the ternary operator where it recursively calls itself
-     * Feed this method a set and the id
-     */
-    public int findRec(int[] a, int id) {
-        return a[id] == id ? id : findRec(a, a[id]);
-    }
-
-    /**
      * Find iterative method with compression, taken from notes
      */
     public static int findCompress(int[] a, int id) {
@@ -194,7 +206,9 @@ public class PCBAnalyserController {
         }
         return id;
     }
-
+    /**
+     * Union method using find compress
+     */
     public  static void union(int[] a, int p, int q) {
         a[findCompress(a, q)] = findCompress(a, p);
     }
@@ -209,7 +223,9 @@ public class PCBAnalyserController {
             }
         }
     }
-
+    /**
+     * Rectangle Drawing method with tooltip
+     */
     public void drawRectangle() {
 
         int selectedObjects = 0;
@@ -288,7 +304,7 @@ public class PCBAnalyserController {
 
 
         }*/
-        blackandwhite.setImage(writableImage);
+        //blackandwhite.setImage(writableImage);
         counter.setText("Selected Objects: " + selectedObjects);
 
     }
@@ -309,49 +325,6 @@ public class PCBAnalyserController {
 
     }
 
-    public void drawDisjoints(){
-        int selectedObjects = 0;
-        Image image = mainImage.getImage();
-        Image  secondImage = image2.getImage();
-        PixelReader pr = secondImage.getPixelReader();
-        WritableImage writableImage = new WritableImage(pr, (int) secondImage.getWidth(), (int) secondImage.getHeight());
-        setUpClusters();
-
-        for (int data : djs) {
-
-            int maxHeight = 0;
-            int minHeight = 0;
-            int left = 0;
-            int right = 0;
-            for (int i = 0; i < pixels.length; i++) {
-                int x = i % (int) image.getWidth();
-                int y = i / (int) image.getWidth();
-
-                if (pixels[i] != 0 && find(pixels, i) == data) {
-                    if (maxHeight == 0) {
-                        maxHeight = minHeight = y;
-                        left = right = x;
-                    } else {
-                        if (x < left)
-                            left = x;
-                        if (x > right)
-
-                            right = x;
-                        if (y > minHeight)
-                            minHeight = y;
-                    }
-                }
-            }
-
-            int biggestArea = 0;
-            int Area = (right - left) * (minHeight - maxHeight);
-            if (Area > biggestArea) {
-                biggestArea = Area;
-
-            }
-        }
-
-    }
 
 
     /**
@@ -363,13 +336,28 @@ public class PCBAnalyserController {
 
 
 
-
+    /**
+     * Dosent work reworked method into clicked image method
+     */
     public void SampleSingleDJS(){
+        setUpClusters();
+        Image single = singleColor.getImage();
+        WritableImage singleWritableImage = new WritableImage((int) single.getWidth(), (int) single.getHeight());
+        for (int data : djs) {
+            for (int i = 0; i < pixels.length; i++) {
+                if (pixels[i] != 0 && find(pixels, i) == data) {
+                    PixelWriter pixelWriter = singleWritableImage.getPixelWriter();
+                    pixelWriter.setColor(i % (int) singleWritableImage.getWidth(), i / (int) singleWritableImage.getWidth(),color1.get(0));
+                }
+            }
+        }
 
     }
 
-
-    public void ColorSingleDJS(ActionEvent event) {
+    /**
+     * Method used for button to change pixels in disjoint array clusters to a random color
+     */
+    public void RandomColorSingleDJS(ActionEvent event) {
        setUpClusters();
         for (int data : djs) {
 
@@ -387,21 +375,9 @@ public class PCBAnalyserController {
             }
         }
 
-
-      /*  public String getComponent(int area) {
-            String component = "";
-            if (area < 99999 &&  area > 9999 ) {
-                component = "Integrated Circuit";
-            } else if (area < 9998 && area > 999) {
-                component = "Capacitor";
-            }
-                else if(area < 998 && area > 400){
-                    component = "Resistor";
-                }
-
-         return component;
-        }*/
-
+    /**
+     * Method String method to return component selected
+     */
         public String getComponent(){
         return component.getText();
         }

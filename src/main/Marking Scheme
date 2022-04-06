@@ -9,7 +9,7 @@
  Image noise reduction and outlier management = 10%
  JavaFX GUI = 5% </
  JUnit Testing = 5% </
- JMH Benchmarking of key methods = 5%
+ JMH Benchmarking of key methods = 5% </
  General (overall completeness, structure, commenting, logic, etc.) = 5%
 
 idea: When clicking image store the selected color and create a disjoint array of those colors. put them on the single disjoint set screen,
