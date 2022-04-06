@@ -8,7 +8,7 @@
  Colouring disjoint sets in black-and-white image (both sampled and random colours) = 10%
  Image noise reduction and outlier management = 10%
  JavaFX GUI = 5% </
- JUnit Testing = 5%
+ JUnit Testing = 5% </
  JMH Benchmarking of key methods = 5%
  General (overall completeness, structure, commenting, logic, etc.) = 5%
 

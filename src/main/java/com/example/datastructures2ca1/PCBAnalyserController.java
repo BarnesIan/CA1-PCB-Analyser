@@ -18,13 +18,12 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.TreeSet;
+import java.util.*;
 
 
 public class PCBAnalyserController {
@@ -45,7 +44,9 @@ public class PCBAnalyserController {
 
     private PixelReader preader;
     int[] pixels;
-    public ArrayList<Rectangle> rectangles = new ArrayList<>();
+    int[] areaCounter;
+    public ArrayList<Rectangle> rectangleCounter = new ArrayList<>();
+    //public ArrayList<Double> areaCounter = new ArrayList<>();
     public ArrayList<Integer> djs = new ArrayList<>();
     WritableImage writableImage;
 
@@ -145,7 +146,7 @@ public class PCBAnalyserController {
                 blue < blueVal + 0.3 && hue > hueVal - 8 && hue < hueVal + 8 && bright > brightValue - 0.9 && bright < brightValue + 0.9 && sat > satValue - 0.5 && sat < satValue + 0.5;
     }
 
-    public String determineComponent(Double red, Double green, Double blue){
+    public static String determineComponent(Double red, Double green, Double blue){
         String component = "";
         if((red <= 0.33 && red >= 0.12) && (green <= 0.30 && green >= 0.12) && (blue <= 0.30 && blue >= 0.12 )){
             component = "Integrated Circuit";
@@ -179,7 +180,7 @@ public class PCBAnalyserController {
      * Recursive method of find that uses the ternary operator where it recursively calls itself
      * Feed this method a set and the id
      */
-    public static int findRec(int[] a, int id) {
+    public int findRec(int[] a, int id) {
         return a[id] == id ? id : findRec(a, a[id]);
     }
 
@@ -194,7 +195,7 @@ public class PCBAnalyserController {
         return id;
     }
 
-    public void union(int[] a, int p, int q) {
+    public  static void union(int[] a, int p, int q) {
         a[findCompress(a, q)] = findCompress(a, p);
     }
 
@@ -244,10 +245,6 @@ public class PCBAnalyserController {
 
             int biggestArea = 0;
             int Area = (right - left) *(minHeight - maxHeight);
-            if (Area > biggestArea){
-                biggestArea = Area;
-
-            }
             Rectangle rect;
             //Helps clean the selected objects by getting the area of each disjoint set and only adds to the counter if above a certain area
             if ((right - left) * (minHeight - maxHeight) > 100) {
@@ -262,7 +259,8 @@ public class PCBAnalyserController {
                 rect.setFill(Color.TRANSPARENT);
 
                 ((AnchorPane) mainImage.getParent()).getChildren().add(rect);
-                rectangles.add(rect);
+                rectangleCounter.add(rect);
+                areaCounter = new int[Area];
 
                 Tooltip area = new Tooltip("Estimated Area: " + Area + " pixels" + "\n" + getComponent() + "\n" + "Component number: " + selectedObjects);
                 Tooltip.install(rect, area);
@@ -273,6 +271,23 @@ public class PCBAnalyserController {
 
 
         }
+    /*    int biggest =0;
+        Arrays.sort(areaCounter);
+        for(int i = 0; i < rectangleCounter.size(); i ++) {
+            double estimateArea = rectangleCounter.get(i).getHeight() * rectangleCounter.get(i).getWidth();
+             for(int j = 0; j < areaCounter.length; j ++){
+                 if(estimateArea == j){
+                     biggest++;
+                     Tooltip area = new Tooltip("Component Number: " + biggest + "\n"+ "Estimated Area: " + estimateArea + " pixels" + "\n" + getComponent() + "\n" + "Component number: " + selectedObjects
+                     );
+                     Tooltip.install(rectangleCounter.get(i), area);
+                     area.setWidth(200);
+                     area.setHeight(1500);
+                 }
+            }
+
+
+        }*/
         blackandwhite.setImage(writableImage);
         counter.setText("Selected Objects: " + selectedObjects);
 
